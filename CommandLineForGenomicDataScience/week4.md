@@ -152,7 +152,7 @@ The single replicate example is provided here only to illustrate the analysis.
 cuffmerge -g athal_genes.gtf commands/GTFs.txt
 cat merged_asm/merged.gtf | cut -f9 | cut -d ' ' -f2 | sort -u | wc -l
 ```
-32.  How many transcripts?
+32.  How many transcripts?  
 `cat merged_asm/merged.gtf | cut -f9 | cut -d ' ' -f4 | sort -u | wc -l`  
 33.  How many genes total were included in the gene expression report from cuffdiff?  
 ```
