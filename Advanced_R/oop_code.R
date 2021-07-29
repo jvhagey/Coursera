@@ -1,3 +1,4 @@
+library(reshape2)
 ## Load any other packages that you may need to execute your code
 data <- read_csv("data/MIE.csv")
 
