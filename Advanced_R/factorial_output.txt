@@ -1,0 +1,21 @@
+> for(i in seq(1, 20, by =10)){
++     print(map(i, ~ (microbenchmark(factorial_loop(i), factorial_reduce(i), factorial_rec(i), factorial_mem(i)))))
++ }
+[[1]]
+Unit: nanoseconds
+                expr   min    lq  mean median    uq     max neval
+   factorial_loop(i)   600   700   847    800   900    3000   100
+ factorial_reduce(i) 20500 21100 59287  21400 21950 3653500   100
+    factorial_rec(i)   500   650   766    700   800    2200   100
+    factorial_mem(i)   400   500 32366    600   700 3174500   100
+
+[[1]]
+Unit: nanoseconds
+                expr   min    lq  mean median    uq    max neval
+   factorial_loop(i)  1500  1700  2280   1850  2000  34900   100
+ factorial_reduce(i) 33800 35950 39236  37200 38350 126400   100
+    factorial_rec(i)  4300  4600  4931   4800  5000  10300   100
+    factorial_mem(i)   500   600   835    800   800  10100   100
+    
+    
+    
