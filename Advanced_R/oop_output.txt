@@ -1,0 +1,171 @@
+> library(reshape2)
+> ## Load any other packages that you may need to execute your code
+> data <- read_csv("data/MIE.csv")
+Rows: 120877 Columns: 5                                                                                                                                                                                 
+-- Column specification ---------------------------------------------------------------------------------------------------------------------------------------------
+Delimiter: ","
+chr (1): room
+dbl (4): id, visit, value, timepoint
+
+i Use `spec()` to retrieve the full column specification for this data.
+i Specify the column types or set `show_col_types = FALSE` to quiet this message.
+> 
+> #The variables in the dataset are:
+> #*id*: the subject identification number
+> #*visit*: the visit number which can be 0, 1, or 2
+> #*room*: the room in which the monitor was placed
+> #*value*: the level of pollution in micrograms per cubic meter
+> #*timepoint*: the time point of the monitor value for a given visit/room
+> 
+> #You will need to design a class called “LongitudinalData” that characterizes the structure of this longitudinal dataset. You will also need to design classes to represent the concept of a “subject”, a “visit”, and a “room”.
+> 
+> #creating classes
+> setClass("LongitudinalData", "data.frame")
+> setClass("subject","data.frame")
+> setClass("visit", "data.frame")
+> setClass("room", "data.frame")
+> 
+> #In addition you will need to implement the following functions
+> #make_LD: a function that converts a data frame into a “LongitudinalData” object
+> #subject: a generic function for extracting subject-specific information
+> #visit: a generic function for extracting visit-specific information
+> #room: a generic function for extracting room-specific information
+> 
+> #set genertic methods
+> setGeneric("make_LD", function(x){standardGeneric("make_LD")})
+[1] "make_LD"
+> setGeneric("subject", function(x,...){standardGeneric("subject")})
+[1] "subject"
+> setGeneric("summary", function(x){standardGeneric("summary")})
+[1] "summary"
+> setGeneric("print", function(x){standardGeneric("print")})
+[1] "print"
+> setGeneric("visit", function(x,...){standardGeneric("visit")})
+[1] "visit"
+> setGeneric("room", function(x,...){standardGeneric("room")})
+[1] "room"
+> 
+> #function that converts a data frame into a “LongitudinalData” object, make "tbl_df" for tibble
+> setMethod("make_LD", "data.frame", function(x){
++ 	#df <- tibble("ID"=x$id, "Visit"=x$visit, "Room"=x$room, "Value"=x$value, "Timepoint"=x$timepoint)
++ 	df <- data.frame("ID"=x@.Data[[1]], "Visit"=x@.Data[[2]], "Room"=x@.Data[[3]], "Value"=x@.Data[[4]], "Timepoint"=x@.Data[[5]])
++ 	df <- new("LongitudinalData", df)
++ 	return(df)})
+> 
+> #function that converts a data frame into a "subject" object
+> setMethod("subject", "LongitudinalData", function(x,num){
++ 	#x <- as.data.frame(x)
++ 	df <- new("subject", x[x$ID==num,])
++ 	return(df)})
+> 
+> #function that converts a subject object into a "summary" object
+> setMethod("summary", "subject", function(x){
++ 	df <- new("summary", x)
++ 	return(df)})
+> 
+> #function that converts a subject object into a "summary" object
+> setMethod("summary", "room", function(x){
++ 	#x <- base::summary(x)
++ 	df <- new("summary", x)
++ 	return(df)})
+> 
+> #function that converts a data frame into a "vist" object
+> setMethod("visit", "subject", function(x,num){
++ 	df <- new("visit", x[x$Visit==num,])
++ 	return(df)})
+> 
+> #function that converts a data frame into a "vist" object
+> setMethod("room", "visit", function(x,st){
++ 	df <- new("room", x[x$Room==st,])
++ 	return(df)})
+> 
+> #make print statement for class
+> #setMethod("print", class, function(x){class(x)[1]})
+> 
+> #make method to print for LD object
+> setMethod("print","LongitudinalData", function(x){paste("Longitudinal data with", length(unique(as.data.frame(x)$ID)), "subjects")})
+> 
+> #print function for subject
+> setMethod("print","subject", function(x){
++ 	if(length(unique(x$ID))==0){
++ 		return(NULL)
++ 	}
++ 	else{
++ 		paste("Subject ID:", unique(x$ID))}})
+> 
+> #print function for summary
+> setMethod("print", "summary", function(x){
++ 	cat("ID:", unique(x$ID),"\n")
++ 	x <- subset(x, select=-c(ID, Timepoint))
++ 	if (length(unique(x$Room))==1){
++ 		base::summary(x$Value)
++ 	}
++ 	else{
++ 		dcast(data = x, formula = Visit ~ Room, fun.aggregate = mean, value.var = "Value")}})
+> 
+> #print function for summary
+> setMethod("print", "visit", function(x){
++ 	cat("ID:", unique(x$ID),"\n")
++ 	cat("Visit", unique(x$Visit) ,"\n")})
+> 
+> #print function for summary
+> setMethod("print", "room", function(x){
++ 	cat("ID:", unique(x$ID),"\n")
++ 	cat("Visit:", unique(x$Visit) ,"\n")
++ 	cat("Room:", unique(x$Room) ,"\n")})
+> 
+> #For each generic/class combination you will need to implement a method, although not all combinations are necessary (see below). You will also need to write print and summary methods for some classes (again, see below).
+> #To complete this Part, you can use either the S3 system, the S4 system, or the reference class system to implement the necessary functions. 
+> #For this assessment, you will need to implement the necessary functions to be able to execute the code in the following script file:
+> 
+> x <- make_LD(data)
+> print(class(x))
+ Error in (function (classes, fdef, mtable)  : 
+  unable to find an inherited method for function ‘print’ for signature ‘"character"’ 
+> print(x)
+[1] "Longitudinal data with 10 subjects"
+> 
+> ## Subject 10 doesn't exist
+> out <- subject(x, 10)
+> print(out)
+NULL
+> 
+> out <- subject(x, 14)
+> print(out)
+[1] "Subject ID: 14"
+> 
+> out <- subject(x, 54) %>% summary
+> print(out)
+ID: 54 
+  Visit  bedroom       den living room    office
+1     0      NaN       NaN    2.792601 13.255475
+2     1      NaN 13.450946         NaN  4.533921
+3     2 4.193721  3.779225         NaN       NaN
+> 
+> out <- subject(x, 14) %>% summary
+> print(out)
+ID: 14 
+  Visit   bedroom family  room living room
+1     0  4.786592          NaN     2.75000
+2     1  3.401442     8.426549         NaN
+3     2 18.583635          NaN    22.55069
+> 
+> out <- subject(x, 44) %>% visit(0) %>% room("bedroom")
+> print(out)
+ID: 44 
+Visit: 0 
+Room: bedroom 
+> 
+> ## Show a summary of the pollutant values
+> out <- subject(x, 44) %>% visit(0) %>% room("bedroom") %>% summary
+> print(out)
+ID: 44 
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+    8.0    30.0    51.0    88.8    80.0   911.0 
+> 
+> out <- subject(x, 44) %>% visit(1) %>% room("living room") %>% summary
+> print(out)
+ID: 44 
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+   2.75   14.00   24.00   41.37   37.00 1607.00 
+> 
